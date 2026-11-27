@@ -1,0 +1,11 @@
+{
+  "name": "dtwin-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Цифровой двойник клиента с адаптивной импутацией — MVP для демонстрации",
+  "scripts": {
+    "start": "node serve.cjs 4173",
+    "test:logic": "node tools/harness.cjs",
+    "test:smoke": "node tools/smoke.cjs"
+  }
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="utf-8"><title>QA probe</title></head>
+<body style="margin:0;background:#000">
+<iframe id="f" style="border:0;display:block" src="/index.html#twin/consent"></iframe>
+<pre id="out" style="color:#0f0;font:12px monospace;white-space:pre-wrap"></pre>
+<script>
+(function () {
+  const spec = (location.hash || '#1600,twin/consent').slice(1).split(',');
+  const W = Number(spec[0]) || 1600;
+  const H = 1900;
+  const f = document.getElementById('f');
+  f.src = '/index.html#' + (spec[1] || 'twin/consent');
+  f.style.width = W + 'px';
+  f.style.height = H + 'px';
+  const out = document.getElementById('out');
+  let lines = [];
+  f.addEventListener('load', () => {
+    setTimeout(() => {
+      const d = f.contentDocument, w = f.contentWindow;
+      const stage = d.querySelector('.stage');
+      lines.push('W=' + W + ' hash=' + w.location.hash);
+      lines.push('doc scrollW=' + d.documentElement.scrollWidth + ' clientW=' + d.documentElement.clientWidth);
+      lines.push('stage scrollW=' + stage.scrollWidth + ' clientW=' + stage.clientWidth + ' scrollH=' + stage.scrollHeight);
+      let over = [];
+      d.querySelectorAll('.stage *, .rail *').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) return;
+        if (r.right > w.innerWidth + 1 || r.left < -1) {
+          over.push((el.className || el.tagName) + '@right' + Math.round(r.right));
+        }
+      });
+      lines.push('overflow=' + over.length + ' :: ' + over.slice(0, 6).join(' | '));
+      // обрезка текста в кнопках/чипах
+      let clipped = [];
+      d.querySelectorAll('.chip, .btn, .tab, .frow .fl').forEach((el) => {
+        if (el.scrollWidth > el.clientWidth + 2) clipped.push((el.className || el.tagName) + ':' + el.textContent.trim().slice(0, 18));
+      });
+      lines.push('clipped=' + clipped.length + ' :: ' + clipped.slice(0, 6).join(' | '));
+      const b = d.querySelector('.banner');
+      if (b) lines.push('banner w=' + Math.round(b.getBoundingClientRect().width));
+      const tbl = d.querySelector('#variantTable table');
+      if (tbl) lines.push('variantTable scrollW=' + tbl.scrollWidth + ' clientW=' + tbl.clientWidth);
+      out.textContent = lines.join('\n');
+    }, 1200);
+  });
+  if (f.complete) f.dispatchEvent(new Event('load'));
+})();
+</script>
+</body>
+</html>
